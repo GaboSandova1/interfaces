@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tangram 3D</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // --- CÓDIGO DE LAS PIEZAS (PEGAR AQUÍ) ---
+
+
+        /**
+         * Crea un triángulo grande del tangram.
+         * @param {string | THREE.Color} color - El color de la pieza.
+         * @returns {THREE.Mesh} El objeto 3D del triángulo.
+         */
+        function crearTrianguloGrande(color) {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0);
+            shape.lineTo(4, 0);
+            shape.lineTo(0, 4);
+            shape.lineTo(0, 0);
+
+            const extrudeSettings = { depth: 0.4, bevelEnabled: false };
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: color });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            // Centra el pivote de la pieza para facilitar la rotación
+            geometry.center();
+            
+            return mesh;
+        }
+
+
+
+
+        /**
+         * Crea el triángulo mediano del tangram.
+         * @param {string | THREE.Color} color - El color de la pieza.
+         * @returns {THREE.Mesh} El objeto 3D del triángulo.
+         */
+        function crearTrianguloMediano(color) {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0);
+            shape.lineTo(2, 2);
+            shape.lineTo(0, 4);
+            shape.lineTo(0, 0);
+            
+            const extrudeSettings = { depth: 0.4, bevelEnabled: false };
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: color });
+
+            const mesh = new THREE.Mesh(geometry, material);
+            geometry.center();
+            
+            return mesh;
+        }
+
+
+
+
+        /**
+         * Crea un triángulo pequeño del tangram.
+         * @param {string | THREE.Color} color - El color de la pieza.
+         * @returns {THREE.Mesh} El objeto 3D del triángulo.
+         */
+        function crearTrianguloPequeno(color) {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0);
+            shape.lineTo(2, 0);
+            shape.lineTo(0, 2);
+            shape.lineTo(0, 0);
+
+            const extrudeSettings = { depth: 0.4, bevelEnabled: false };
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: color });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            geometry.center();
+
+            return mesh;
+        }
+
+
+
+
+        /**
+         * Crea el cuadrado del tangram.
+         * @param {string | THREE.Color} color - El color de la pieza.
+         * @returns {THREE.Mesh} El objeto 3D del cuadrado.
+         */
+        function crearCuadrado(color) {
+            const shape = new THREE.Shape();
+            const side = 2 * Math.sqrt(2) / 2; // Lado de sqrt(2), escalado a nuestras unidades
+            shape.moveTo(0, 0);
+            shape.lineTo(side, 0);
+            shape.lineTo(side, side);
+            shape.lineTo(0, side);
+            shape.lineTo(0, 0);
+
+            const extrudeSettings = { depth: 0.4, bevelEnabled: false };
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: color });
+
+            const mesh = new THREE.Mesh(geometry, material);
+            geometry.center();
+
+            return mesh;
+        }
+
+
+
+
+
+        /**
+         * Crea el paralelogramo del tangram.
+         * @param {string | THREE.Color} color - El color de la pieza.
+         * @returns {THREE.Mesh} El objeto 3D del paralelogramo.
+         */
+        function crearParalelogramo(color) {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0);
+            shape.lineTo(2, 0);
+            shape.lineTo(3.2, 1.2); // Vértice desplazado para hacerlo más delgado
+            shape.lineTo(1, 1.2); // Vértice desplazado para hacerlo más delgado
+            shape.lineTo(0, 0);
+            
+            const extrudeSettings = { depth: 0.4, bevelEnabled: false };
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: color });
+            
+            const mesh = new THREE.Mesh(geometry, material);
+            geometry.center();
+
+            return mesh;
+        }
+
+
+
+        // 1. Escena, Cámara y Renderizador
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf0f0f0);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 10;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // 2. Luces (para ver los colores)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(5, 10, 7.5);
+        scene.add(directionalLight);
+
+        // 3. Crear y añadir las piezas a la escena
+        // Triángulo grande azul (cuerpo)
+        const trianguloGrandeAzul = crearTrianguloGrande('#87ceeb');
+        trianguloGrandeAzul.position.set(-4.3, -0.9, -3);
+        trianguloGrandeAzul.rotation.z = 3.9;
+        trianguloGrandeAzul.rotation.x = 0;
+        trianguloGrandeAzul.rotation.y = 0;
+        scene.add(trianguloGrandeAzul);
+
+        // Triángulo grande rosa (cadera)
+        const trianguloGrandeRosa = crearTrianguloGrande('#ffc0cb');
+        trianguloGrandeRosa.position.set(0.5, -0.2, -3);
+        trianguloGrandeRosa.rotation.z = 3.9;
+        trianguloGrandeRosa.rotation.x = 0;
+        trianguloGrandeRosa.rotation.y = 0;
+        scene.add(trianguloGrandeRosa);
+
+        // Triángulo mediano rojo (cola)
+        const trianguloMedianoRojo = crearTrianguloMediano('#ff69b4');
+        trianguloMedianoRojo.position.set(-2.3, 0.9, -3);
+        trianguloMedianoRojo.rotation.z = -7.9;
+        trianguloMedianoRojo.rotation.x = 0;
+        trianguloMedianoRojo.rotation.y = 0;
+        scene.add(trianguloMedianoRojo);
+
+        // Triángulo pequeño verde (oreja derecha)
+        const trianguloPequenoVerde = crearTrianguloPequeno('#00a99d');
+        trianguloPequenoVerde.position.set(3.5, 4.2, -3.7);
+        trianguloPequenoVerde.rotation.z = -0.8;
+        trianguloPequenoVerde.rotation.x = 0;
+        trianguloPequenoVerde.rotation.y = 0;
+        scene.add(trianguloPequenoVerde);
+
+        // Triángulo pequeño azul fuerte (oreja izquierda)
+        const trianguloPequenoAzulFuerte = crearTrianguloPequeno('#3cb371');
+        trianguloPequenoAzulFuerte.position.set(0.7, 4.2, -3.7);
+        trianguloPequenoAzulFuerte.rotation.z = 2.3;
+        trianguloPequenoAzulFuerte.rotation.x = 0;
+        trianguloPequenoAzulFuerte.rotation.y = 0;
+        scene.add(trianguloPequenoAzulFuerte);
+
+        // Cuadrado naranja (cara)
+        const cuadradoNaranja = crearCuadrado('orange');
+        cuadradoNaranja.position.set(1.5, 2, 0);
+        cuadradoNaranja.rotation.z = -7.09;
+        cuadradoNaranja.rotation.x = 0;
+        cuadradoNaranja.rotation.y = 0;
+        scene.add(cuadradoNaranja);
+
+        // Paralelogramo verde claro (lomo)
+        const paralelogramoVerdeClaro = crearParalelogramo('#0077be');
+        paralelogramoVerdeClaro.position.set(-6.2, 0, -0.2);
+        paralelogramoVerdeClaro.rotation.z = 3.1;
+        paralelogramoVerdeClaro.rotation.x = 0;
+        paralelogramoVerdeClaro.rotation.y = 0.4;
+        scene.add(paralelogramoVerdeClaro);
+
+
+        // 4. Bucle de animación
+// Animación de escala para cada pieza, una por una
+const piezasTangram = [
+    trianguloGrandeAzul,
+    trianguloGrandeRosa,
+    trianguloMedianoRojo,
+    trianguloPequenoVerde,
+    trianguloPequenoAzulFuerte,
+    cuadradoNaranja,
+    paralelogramoVerdeClaro
+];
+
+let piezaActual = 0;
+let escala = 1;
+let direccion = 1;
+let tiempo = 0;
+let animando = true;
+let posicionesOriginalesX = piezasTangram.map(p => p.position.x);
+let posicionesOriginalesY = piezasTangram.map(p => p.position.y);
+let destinos = [
+    {x: posicionesOriginalesX[0] + 12, y: posicionesOriginalesY[0]}, // Triángulo grande azul
+    {x: posicionesOriginalesX[1] - 12, y: posicionesOriginalesY[1]}, // Triángulo grande rosa
+    {x: posicionesOriginalesX[2], y: posicionesOriginalesY[2] - 7}, // Triángulo mediano rojo (no se mueve)
+    {x: posicionesOriginalesX[3] + 8, y: posicionesOriginalesY[3]}, // Triángulo pequeño verde
+    {x: posicionesOriginalesX[4] - 8, y: posicionesOriginalesY[4]}, // Triángulo pequeño azul fuerte
+    {x: posicionesOriginalesX[5], y: posicionesOriginalesY[5] - 7}, // Cuadrado naranja
+    {x: posicionesOriginalesX[6], y: posicionesOriginalesY[6] + 7}  // Paralelogramo verde claro
+];
+let piezasAnimadas = Array(piezasTangram.length).fill(false);
+let todasAnimadas = false;
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    // Animar solo la pieza actual, luego todas regresan juntas
+    tiempo += 0.03;
+    if (!todasAnimadas) {
+        if (animando) {
+            escala += direccion * 0.01; // Más lento
+            let pieza = piezasTangram[piezaActual];
+            // Movimiento según tipo de pieza
+            if (piezaActual === 0 || piezaActual === 1 || piezaActual === 3 || piezaActual === 4) {
+                // Triángulos grandes y pequeños: mover en X
+                let destino = destinos[piezaActual].x;
+                let posX = pieza.position.x;
+                if (direccion === 1) {
+                    pieza.position.x += (destino - posX) * 0.07;
+                }
+            } else if (piezaActual === 2 || piezaActual === 5) {
+                // Cuadrado: mover en Y
+                let destino = destinos[piezaActual].y;
+                let posY = pieza.position.y;
+                if (direccion === 1) {
+                    pieza.position.y += (destino - posY) * 0.07;
+                }
+            } else if (piezaActual === 6) {
+                // Paralelogramo: mover en Y
+                let destino = destinos[piezaActual].y;
+                let posY = pieza.position.y;
+                if (direccion === 1) {
+                    pieza.position.y += (destino - posY) * 0.07;
+                }
+            }
+            if (escala >= 1.3) {
+                direccion = -1;
+            }
+            if (escala <= 1) {
+                escala = 1;
+                direccion = 1;
+                animando = false;
+                piezasAnimadas[piezaActual] = true;
+                setTimeout(() => {
+                    if (piezaActual < piezasTangram.length - 1) {
+                        piezaActual++;
+                        animando = true;
+                    } else {
+                        todasAnimadas = true;
+                        setTimeout(() => {
+                            // Regresar todas juntas
+                            for (let i = 0; i < piezasTangram.length; i++) {
+                                piezasAnimadas[i] = false;
+                            }
+                            todasAnimadas = false;
+                            piezaActual = 0;
+                            animando = true;
+                        }, 1200);
+                    }
+                }, 900);
+            }
+        }
+        // Resetear escala de todas las piezas (excepto la animada)
+        for (let i = 0; i < piezasTangram.length; i++) {
+            if (i !== piezaActual) {
+                piezasTangram[i].scale.set(1, 1, 1);
+            }
+        }
+        // Aplicar escala animada solo a la pieza actual
+        piezasTangram[piezaActual].scale.set(escala, escala, escala);
+    } else {
+        // Regresar todas las piezas a su posición original
+        for (let i = 0; i < piezasTangram.length; i++) {
+            // Triángulos grandes y pequeños: mover en X
+            if (i === 0 || i === 1 || i === 3 || i === 4) {
+                let posX = piezasTangram[i].position.x;
+                piezasTangram[i].position.x += (posicionesOriginalesX[i] - posX) * 0.07;
+            } else if (i === 2 || i === 5 || i === 6) {
+                let posY = piezasTangram[i].position.y;
+                piezasTangram[i].position.y += (posicionesOriginalesY[i] - posY) * 0.07;
+            }
+            piezasTangram[i].scale.set(1, 1, 1);
+        }
+    }
+
+    renderer.render(scene, camera);
+}
+
+animate();
+
+    </script>
+</body>
+</html>

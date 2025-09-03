@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tangram 3D - Botella de Perfume</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // --- FUNCIONES DE PIEZAS CORREGIDAS ---
+
+        // NOTA: Se ha estandarizado la escala de todas las piezas para que encajen.
+        // La escala base es el triángulo pequeño con catetos de longitud 2.
+
+        function crearTrianguloGrande(color) {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0);
+            shape.lineTo(4, 0); // Cateto de 4 unidades
+            shape.lineTo(0, 4); // Cateto de 4 unidades
+            shape.lineTo(0, 0);
+
+            const extrudeSettings = { depth: 0.4, bevelEnabled: false };
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: color });
+            const mesh = new THREE.Mesh(geometry, material);
+            geometry.center();
+            return mesh;
+        }
+
+        function crearTrianguloMediano(color) {
+            const shape = new THREE.Shape();
+            const leg = 2 * Math.sqrt(2); // Cateto de ~2.828 unidades
+            shape.moveTo(0, 0);
+            shape.lineTo(leg, 0);
+            shape.lineTo(0, leg);
+            shape.lineTo(0, 0);
+            
+            const extrudeSettings = { depth: 0.4, bevelEnabled: false };
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: color });
+            const mesh = new THREE.Mesh(geometry, material);
+            geometry.center();
+            return mesh;
+        }
+
+        function crearTrianguloPequeno(color) {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0);
+            shape.lineTo(2, 0); // Cateto de 2 unidades
+            shape.lineTo(0, 2); // Cateto de 2 unidades
+            shape.lineTo(0, 0);
+
+            const extrudeSettings = { depth: 0.4, bevelEnabled: false };
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: color });
+            const mesh = new THREE.Mesh(geometry, material);
+            geometry.center();
+            return mesh;
+        }
+
+        function crearCuadrado(color) {
+            const shape = new THREE.Shape();
+            shape.moveTo(0, 0);
+            shape.lineTo(2, 0); // Lado de 2 unidades
+            shape.lineTo(2, 2);
+            shape.lineTo(0, 2);
+            shape.lineTo(0, 0);
+
+            const extrudeSettings = { depth: 0.4, bevelEnabled: false };
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: color });
+            const mesh = new THREE.Mesh(geometry, material);
+            geometry.center();
+            return mesh;
+        }
+
+        function crearParalelogramo(color) {
+            const shape = new THREE.Shape();
+            // Lados de 2 y 2*sqrt(2)
+            shape.moveTo(0, 0);
+            shape.lineTo(2, 0);
+            shape.lineTo(4, 2);
+            shape.lineTo(2, 2);
+            shape.lineTo(0, 0);
+            
+            const extrudeSettings = { depth: 0.4, bevelEnabled: false };
+            const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+            const material = new THREE.MeshStandardMaterial({ color: color });
+            const mesh = new THREE.Mesh(geometry, material);
+            geometry.center();
+            return mesh;
+        }
+
+        // 1. Escena, Cámara y Renderizador
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xf0f0f0);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 12; // Un poco más lejos para ver toda la figura
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // 2. Luces
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(-5, 10, 8);
+        scene.add(directionalLight);
+
+        // 3. Crear y POSICIONAR las piezas para formar la botella de perfume
+        
+        // --- PARTE INFERIOR (CUERPO DE LA BOTELLA) ---
+        const trianguloGrandeRosa = crearTrianguloGrande('#ffc0cb'); // Pink
+        trianguloGrandeRosa.position.set(-2, -2, 0);
+        trianguloGrandeRosa.rotation.z = Math.PI; // 180 grados
+        scene.add(trianguloGrandeRosa);
+
+        const trianguloGrandeAzul = crearTrianguloGrande('#87ceeb'); // SkyBlue
+        trianguloGrandeAzul.position.set(2, -2, 0);
+        trianguloGrandeAzul.rotation.z = -Math.PI / 2; // -90 grados
+        scene.add(trianguloGrandeAzul);
+
+        // --- PARTE SUPERIOR (HOMBROS DE LA BOTELLA) ---
+        const trianguloMedianoRosa = crearTrianguloMediano('#ff69b4'); // HotPink
+        trianguloMedianoRosa.position.set(0, 0, 0);
+        trianguloMedianoRosa.rotation.z = Math.PI * 5 / 4; // 225 grados
+        scene.add(trianguloMedianoRosa);
+
+        const trianguloPequenoVerde = crearTrianguloPequeno('#3cb371'); // MediumSeaGreen
+        trianguloPequenoVerde.position.set(-3, 1, 0);
+        trianguloPequenoVerde.rotation.z = Math.PI / 2; // 90 grados
+        scene.add(trianguloPequenoVerde);
+
+        const paralelogramoAzul = crearParalelogramo('#0077be'); // Un azul más oscuro
+        paralelogramoAzul.position.set(2, 1, 0);
+        // La rotación del paralelogramo es un poco más compleja
+        paralelogramoAzul.rotation.z = Math.PI; // 180 grados
+        paralelogramoAzul.scale.x = -1; // Se invierte para que coincida con la imagen
+        scene.add(paralelogramoAzul);
+
+        const trianguloPequenoVerdeAzul = crearTrianguloPequeno('#00a99d'); // Teal/cian
+        trianguloPequenoVerdeAzul.position.set(-1, 1, 0);
+        trianguloPequenoVerdeAzul.rotation.z = 4.71; // 180 grados
+        scene.add(trianguloPequenoVerdeAzul);
+
+        // --- PARTE SUPERIOR (TAPA DE LA BOTELLA) ---
+        const cuadradoNaranja = crearCuadrado('orange');
+        cuadradoNaranja.position.set(0, 3, 0);
+        cuadradoNaranja.rotation.z = Math.PI / 2; // 90 grados
+        scene.add(cuadradoNaranja);
+
+        // 4. Bucle de animación
+        // Animación tipo tangram: cada pieza se mueve y escala una por una, se queda en su nuevo lugar, luego todas regresan juntas
+        const piezasTangram = [
+            trianguloGrandeRosa,
+            trianguloGrandeAzul,
+            trianguloMedianoRosa,
+            trianguloPequenoVerde,
+            paralelogramoAzul,
+            trianguloPequenoVerdeAzul,
+            cuadradoNaranja
+        ];
+        let posicionesOriginalesX = piezasTangram.map(p => p.position.x);
+let posicionesOriginalesY = piezasTangram.map(p => p.position.y);
+// Guardar la posición original del paralelogramo en X e Y
+const paralelogramoOriginalX = paralelogramoAzul.position.x;
+const paralelogramoOriginalY = paralelogramoAzul.position.y;
+        let destinos = [
+    {x: posicionesOriginalesX[0] + 10, y: posicionesOriginalesY[0]}, // Triángulo grande rosa
+    {x: posicionesOriginalesX[1] - 10, y: posicionesOriginalesY[1]}, // Triángulo grande azul
+    {x: posicionesOriginalesX[2], y: posicionesOriginalesY[2] - 7}, // Triángulo mediano rosa (baja en y)
+    {x: posicionesOriginalesX[3] + 8, y: posicionesOriginalesY[3]}, // Triángulo pequeño verde
+    {x: paralelogramoOriginalX, y: paralelogramoOriginalY + 7}, // Paralelogramo azul (sube en y, x fijo)
+    {x: posicionesOriginalesX[5] - 8, y: posicionesOriginalesY[5]}, // Triángulo pequeño verde-azul
+    {x: posicionesOriginalesX[6], y: posicionesOriginalesY[6] - 7}  // Cuadrado naranja (baja en y)
+        ];
+        let piezaActual = 0;
+        let escala = 1;
+        let direccion = 1;
+        let animando = true;
+        let piezasAnimadas = Array(piezasTangram.length).fill(false);
+        let todasAnimadas = false;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            // Animar solo la pieza actual, luego todas regresan juntas
+            if (!todasAnimadas) {
+                if (animando) {
+                    escala += direccion * 0.01;
+                    let pieza = piezasTangram[piezaActual];
+                    // Movimiento según tipo de pieza
+                    if (piezaActual === 0 || piezaActual === 1 || piezaActual === 3 || piezaActual === 5) {
+                        // Triángulos grandes y pequeños: mover en X
+                        let destino = destinos[piezaActual].x;
+                        let posX = pieza.position.x;
+                        if (direccion === 1) {
+                            pieza.position.x += (destino - posX) * 0.07;
+                        }
+                    } else if (piezaActual === 2 || piezaActual === 6) {
+                        // Mediano y cuadrado: mover en Y
+                        let destino = destinos[piezaActual].y;
+                        let posY = pieza.position.y;
+                        if (direccion === 1) {
+                            pieza.position.y += (destino - posY) * 0.07;
+                        }
+                    } else if (piezaActual === 4) {
+                        // Paralelogramo: solo mover en Y
+                        let destino = destinos[piezaActual].y;
+                        let posY = pieza.position.y;
+                        if (direccion === 1) {
+                            pieza.position.y += (destino - posY) * 0.07;
+                        }
+                        // Mantener X fija
+                        pieza.position.x = paralelogramoOriginalX;
+                    }
+                    if (escala >= 1.3) {
+                        direccion = -1;
+                    }
+                    if (escala <= 1) {
+                        escala = 1;
+                        direccion = 1;
+                        animando = false;
+                        piezasAnimadas[piezaActual] = true;
+                        setTimeout(() => {
+                            if (piezaActual < piezasTangram.length - 1) {
+                                piezaActual++;
+                                animando = true;
+                            } else {
+                                todasAnimadas = true;
+                                setTimeout(() => {
+                                    // Regresar todas juntas
+                                    for (let i = 0; i < piezasTangram.length; i++) {
+                                        piezasAnimadas[i] = false;
+                                    }
+                                    todasAnimadas = false;
+                                    piezaActual = 0;
+                                    animando = true;
+                                }, 1200);
+                            }
+                        }, 900);
+                    }
+                }
+                // Resetear escala de todas las piezas (excepto la animada)
+                for (let i = 0; i < piezasTangram.length; i++) {
+                    if (i !== piezaActual) {
+                        if (i === 4) {
+                            // Paraleogramo azul: siempre debe estar invertido en X
+                            piezasTangram[i].scale.set(-1, 1, 1);
+                        } else {
+                            piezasTangram[i].scale.set(1, 1, 1);
+                        }
+                    }
+                }
+                // Aplicar escala animada solo a la pieza actual
+                piezasTangram[piezaActual].scale.set(escala, escala, escala);
+            } else {
+                // Regresar todas las piezas a su posición original
+                for (let i = 0; i < piezasTangram.length; i++) {
+                    // Triángulos grandes y pequeños: mover en X
+                    if (i === 0 || i === 1 || i === 3 || i === 5) {
+                        let posX = piezasTangram[i].position.x;
+                        piezasTangram[i].position.x += (posicionesOriginalesX[i] - posX) * 0.07;
+                    } else if (i === 2 || i === 6) {
+                        let posY = piezasTangram[i].position.y;
+                        piezasTangram[i].position.y += (posicionesOriginalesY[i] - posY) * 0.07;
+                    } else if (i === 4) {
+                        // Paralelogramo: solo regresar en Y, X fija
+                        let posY = piezasTangram[i].position.y;
+                        piezasTangram[i].position.y += (paralelogramoOriginalY - posY) * 0.07;
+                        piezasTangram[i].position.x = paralelogramoOriginalX;
+                    }
+                    if (i === 4) {
+                        // Paraleogramo azul: siempre debe estar invertido en X
+                        piezasTangram[i].scale.set(-1, 1, 1);
+                    } else {
+                        piezasTangram[i].scale.set(1, 1, 1);
+                    }
+                }
+            }
+            renderer.render(scene, camera);
+        }
+        animate();
+
+    </script>
+</body>
+</html>
