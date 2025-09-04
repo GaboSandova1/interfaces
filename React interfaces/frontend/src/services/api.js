@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 
 // Configuración base de axios
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: 'http://127.0.0.1:8000/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -41,7 +41,7 @@ api.interceptors.response.use(
         // Intentar refrescar el token
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
-          const response = await axios.post('http://localhost:8000/api/auth/refresh', {
+          const response = await axios.post('http://127.0.0.1:8000/api/auth/refresh', {
             refresh_token: refreshToken
           });
           

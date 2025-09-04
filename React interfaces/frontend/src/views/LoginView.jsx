@@ -113,7 +113,11 @@ const LoginView = () => {
       if (result.success) {
         // Emitir evento de cambio de autenticación
         window.dispatchEvent(new Event('auth-changed'));
-        navigate(returnUrl);
+        if (result.user?.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/');
+        }
       }
     } catch (error) {
       console.error('Error en login:', error);

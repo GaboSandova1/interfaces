@@ -1,10 +1,12 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ColorThemeController;
 use App\Http\Controllers\Api\TypographyThemeController;
 use App\Http\Controllers\FontController; // Asegúrate de importar FontController
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\CarouselController;
 
 // Rutas públicas de autenticación
 Route::prefix('v1/auth')->group(function () {
@@ -35,4 +37,9 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // Rutas para usuarios
     Route::apiResource('users', UserController::class);
+    
+    // Rutas para el carrusel de imágenes y videos
+    Route::get('carousel', [CarouselController::class, 'index']);
+    Route::post('carousel', [CarouselController::class, 'store']);
+    Route::delete('carousel', [CarouselController::class, 'destroy']);
 });

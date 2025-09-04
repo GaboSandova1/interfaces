@@ -25,6 +25,11 @@ const AdminSidebar = () => {
       path: '/admin/typography',
       icon: 'fas fa-font',
       label: 'Tipografía'
+    },
+    {
+      path: '/admin/gallery',
+      icon: 'fas fa-images',
+      label: 'Carrusel'
     }
   ];
 

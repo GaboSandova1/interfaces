@@ -5,6 +5,7 @@ import AdminDashboard from './admin/AdminDashboard';
 import AdminUsers from './admin/AdminUsers';
 import AdminColors from './admin/AdminColors';
 import AdminTypography from './admin/AdminTypography';
+import AdminGalleryView from './admin/AdminGalleryView';
 import authService from '../services/auth';
 import './AdminView.scss';
 
@@ -46,7 +47,7 @@ const AdminView = () => {
           <Route path="/users" element={<AdminUsers />} />
           <Route path="/colors" element={<AdminColors />} />
           <Route path="/typography" element={<AdminTypography />} />
-          <Route path="/gallery" element={require('./admin/AdminGalleryView').default()} />
+          <Route path="/gallery" element={<AdminGalleryView />} />
         </Routes>
       </main>
     </div>
