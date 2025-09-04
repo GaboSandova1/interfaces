@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
+import { TypographyContext } from '../../context/TypographyContext';
 import typographyService from '../../services/typography';
 import fontService from '../../services/font';
 import TypographyPreview from '../../components/admin/TypographyPreview';
@@ -19,6 +20,7 @@ const DEFAULT_SANS_SERIF_FONTS = [
 ];
 
 const AdminTypography = () => {
+  const { reloadTypography } = useContext(TypographyContext);
   const [headingFont, setHeadingFont] = useState(DEFAULT_SERIF_FONTS[0].value);
   const [headingSize, setHeadingSize] = useState('32px');
   const [bodyFont, setBodyFont] = useState(DEFAULT_SANS_SERIF_FONTS[0].value);
@@ -134,10 +136,10 @@ const AdminTypography = () => {
   };
 
   return (
-    <div className="admin-typography" style={{ maxWidth: 900, margin: '0 auto', padding: 32 }}>
+    <div className="admin-typography" style={{ maxWidth: 1100, margin: '0 auto', padding: 32, minHeight: '70vh' }}>
       <h2 style={{ marginBottom: 24 }}>Gestión de Tipografía</h2>
-      <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap' }}>
-        <div style={{ flex: 1, minWidth: 320 }}>
+      <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', alignItems: 'stretch' }}>
+  <div style={{ flex: 1, minWidth: 320, display: 'flex', flexDirection: 'column', height: '100%' }}>
           <h3>Configuración</h3>
           <div style={{ marginBottom: 16 }}>
             <label>Fuente para títulos:</label>
@@ -169,46 +171,51 @@ const AdminTypography = () => {
             <div>
               <input type="text" placeholder="Nombre para mostrar" value={fontDisplayName} onChange={e => setFontDisplayName(e.target.value)} style={{ padding: 8, marginRight: 8 }} />
               <button onClick={handleFontUpload} disabled={loading || !fontFile || !fontDisplayName} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: 4, padding: '8px 16px', cursor: 'pointer' }}>Subir fuente</button>
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 8 }}>
-                <thead>
-                  <tr style={{ background: '#f3f4f6' }}>
-                    <th style={{ border: '1px solid #d1d5db', padding: 6 }}>Nombre</th>
-                    <th style={{ border: '1px solid #d1d5db', padding: 6 }}>Vista previa</th>
-                    <th style={{ border: '1px solid #d1d5db', padding: 6 }}>Activa</th>
-                    <th style={{ border: '1px solid #d1d5db', padding: 6 }}>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {fonts.map(font => (
-                    <tr key={font.id}>
-                      <td style={{ border: '1px solid #d1d5db', padding: 6 }}>{font.display_name}</td>
-                      <td style={{ border: '1px solid #d1d5db', padding: 6, fontFamily: font.font_family }}>Aa Bb Cc 123</td>
-                      <td style={{ border: '1px solid #d1d5db', padding: 6, textAlign: 'center' }}>
-                        <input type="checkbox" checked={font.is_active} onChange={() => handleToggleFont(font.id)} />
-                      </td>
-                      <td style={{ border: '1px solid #d1d5db', padding: 6 }}>
-                        <button onClick={() => handleDeleteFont(font.id)} style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}>Eliminar</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-            <button onClick={handleSaveTheme} disabled={loading} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: 4, padding: '8px 16px', cursor: 'pointer' }}>Guardar tema</button>
-            <select value={selectedTheme || ''} onChange={e => {
-              const t = themes.find(t => t.id === Number(e.target.value));
-              if (t) handleLoadTheme(t);
-            }} style={{ padding: 8, minWidth: 120 }}>
-              <option value="">Cargar tema guardado...</option>
-              {themes.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
+          <div style={{ display: 'flex', gap: 8, marginTop: 16, flexDirection: 'column', flex: 1 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={handleSaveTheme} disabled={loading} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: 4, padding: '8px 16px', cursor: 'pointer' }}>Guardar tema</button>
+            </div>
           </div>
         </div>
-        <div style={{ flex: 1, minWidth: 320 }}>
+        <div style={{ flex: 1, minWidth: 320, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
           <TypographyPreview headingFont={headingFont} headingSize={headingSize} bodyFont={bodyFont} bodySize={bodySize} />
         </div>
+      </div>
+      {/* Tabla de temas guardados fuera del div de configuración */}
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', marginTop: 32 }}>
+        <table style={{ width: '100%', maxWidth: 900, borderCollapse: 'collapse', minHeight: 250, boxShadow: '0 2px 8px #0001', background: '#fff', transition: 'width 0.2s' }}>
+          <thead>
+            <tr style={{ background: '#f3f4f6' }}>
+              <th style={{ border: '1px solid #d1d5db', padding: 6 }}>ID</th>
+              <th style={{ border: '1px solid #d1d5db', padding: 6 }}>Nombre</th>
+              <th style={{ border: '1px solid #d1d5db', padding: 6 }}>Por Defecto</th>
+              <th style={{ border: '1px solid #d1d5db', padding: 6 }}>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {themes.map(theme => (
+              <tr key={theme.id}>
+                <td style={{ border: '1px solid #d1d5db', padding: 6 }}>{theme.id}</td>
+                <td style={{ border: '1px solid #d1d5db', padding: 6 }}>{theme.name}</td>
+                <td style={{ border: '1px solid #d1d5db', padding: 6, textAlign: 'center' }}>{theme.is_default ? '✔️' : ''}</td>
+                <td style={{ border: '1px solid #d1d5db', padding: 6 }}>
+                  {!theme.is_default && (
+                    <button onClick={async () => {
+                      setLoading(true);
+                      await typographyService.setDefaultTheme(theme.id);
+                      await fetchThemes();
+                      if (reloadTypography) await reloadTypography();
+                      setLoading(false);
+                    }} style={{ background: '#10b981', color: 'white', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer', marginRight: 8 }}>Usar como predeterminado</button>
+                  )}
+                  <button onClick={() => handleLoadTheme(theme)} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: 4, padding: '4px 12px', cursor: 'pointer' }}>Cargar</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

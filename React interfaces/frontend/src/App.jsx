@@ -22,6 +22,8 @@ import AdminGuard from './guards/AdminGuard';
 import Tangram3D from './views/Tangram3D';
 
 import './App.css';
+import { ThemeProvider } from './context/ThemeContext';
+import { TypographyProvider } from './context/TypographyContext';
 
 function AppContent() {
   const location = useLocation();
@@ -61,9 +63,13 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <ThemeProvider>
+      <TypographyProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </TypographyProvider>
+    </ThemeProvider>
   );
 }
 
