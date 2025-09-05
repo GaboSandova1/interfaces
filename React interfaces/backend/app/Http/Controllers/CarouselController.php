@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\CarouselImage;
+use App\Models\CarouselVideo;
 
 class CarouselController extends Controller
 {
@@ -12,14 +14,24 @@ class CarouselController extends Controller
     public function index(Request $request)
     {
         $type = $request->query('type'); // 'image' o 'video'
-        $files = Storage::disk('public')->files('carousel/' . $type);
-        $files = array_map(function ($file) {
-            return [
-                'name' => basename($file),
-                'url' => Storage::url($file),
-            ];
-        }, $files);
-        return response()->json($files);
+        if ($type === 'image') {
+            $images = CarouselImage::all(['id', 'name', 'url', 'alt']);
+            // Asegura que la URL sea pública y completa
+            $images = $images->map(function($img) {
+                $img->url = url($img->url);
+                return $img;
+            });
+            return response()->json($images);
+        } elseif ($type === 'video') {
+            $videos = CarouselVideo::all(['id', 'name', 'url', 'type']);
+            // Asegura que la URL sea pública y completa
+            $videos = $videos->map(function($vid) {
+                $vid->url = url($vid->url);
+                return $vid;
+            });
+            return response()->json($videos);
+        }
+        return response()->json([]);
     }
 
     // Subir imagen o video
@@ -33,10 +45,28 @@ class CarouselController extends Controller
         $type = $request->input('type');
         $filename = Str::random(16) . '.' . $file->getClientOriginalExtension();
         $path = $file->storeAs('carousel/' . $type, $filename, 'public');
-        return response()->json([
-            'name' => $filename,
-            'url' => Storage::url($path),
-        ]);
+        $url = Storage::url($path);
+        $fullUrl = url($url);
+
+        if ($type === 'image') {
+            $img = CarouselImage::create([
+                'name' => $filename,
+                'url' => $url,
+                'alt' => $file->getClientOriginalName(),
+            ]);
+            // Retorna la URL pública completa
+            $img->url = $fullUrl;
+            return response()->json($img);
+        } else {
+            $vid = CarouselVideo::create([
+                'name' => $filename,
+                'url' => $url,
+                'type' => $file->getClientMimeType(),
+            ]);
+            // Retorna la URL pública completa
+            $vid->url = url($url);
+            return response()->json($vid);
+        }
     }
 
     // Eliminar imagen o video
@@ -46,9 +76,16 @@ class CarouselController extends Controller
             'type' => 'required|in:image,video',
             'name' => 'required|string',
         ]);
-        $path = 'carousel/' . $request->input('type') . '/' . $request->input('name');
+        $type = $request->input('type');
+        $name = $request->input('name');
+        $path = 'carousel/' . $type . '/' . $name;
         if (Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
+            if ($type === 'image') {
+                CarouselImage::where('name', $name)->delete();
+            } else {
+                CarouselVideo::where('name', $name)->delete();
+            }
             return response()->json(['success' => true]);
         }
         return response()->json(['success' => false, 'message' => 'Archivo no encontrado'], 404);

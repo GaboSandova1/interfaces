@@ -6,6 +6,22 @@ import api from '../services/api';
 const API_URL = '/carousel';
 
 export default function AdminCarouselManager() {
+  // Eliminar todas las imágenes
+  const handleDeleteAllImages = async () => {
+    if (!window.confirm('¿Seguro que deseas eliminar TODAS las imágenes?')) return;
+    setLoading(true);
+    try {
+      for (const img of images) {
+        await api.delete(API_URL, { data: { type: 'image', name: img.name } });
+      }
+      fetchFiles();
+    } catch (err) {
+      if (err.response && err.response.status === 401) {
+        setAuthError(true);
+      }
+    }
+    setLoading(false);
+  };
   const [authError, setAuthError] = useState(false);
   const [images, setImages] = useState([]);
   const [videos, setVideos] = useState([]);
@@ -23,8 +39,8 @@ export default function AdminCarouselManager() {
       ]);
       setImages(imgRes.data);
       setVideos(vidRes.data);
-      setPreviewImages((Array.isArray(imgRes.data) ? imgRes.data : []).map(i => ({ url: i.url, name: i.name })));
-      setPreviewVideos((Array.isArray(vidRes.data) ? vidRes.data : []).map(v => ({ url: v.url, name: v.name, type: v.type || 'video/mp4' })));
+  setPreviewImages((Array.isArray(imgRes.data) ? imgRes.data : []).map(i => ({ url: i.url, name: i.name })));
+  setPreviewVideos((Array.isArray(vidRes.data) ? vidRes.data : []).map(v => ({ url: v.url, name: v.name, type: v.type || 'video/mp4' })));
     } catch (err) {
       if (err.response && err.response.status === 401) {
         setAuthError(true);
@@ -50,6 +66,9 @@ export default function AdminCarouselManager() {
       fetchFiles();
       if (type === 'image') setImageFile(null);
       else setVideoFile(null);
+      // Limpiar previews locales después de subir
+      if (type === 'image') setPreviewImages([]);
+      else setPreviewVideos([]);
     } catch (err) {
       if (err.response && err.response.status === 401) {
         setAuthError(true);
@@ -82,14 +101,25 @@ export default function AdminCarouselManager() {
       <div style={{ display: 'flex', gap: 32 }}>
         <div style={{ flex: 1 }}>
           <h2>Administrar Carrusel de Img</h2>
-          <input type="file" accept="image/*" onChange={e => setImageFile(e.target.files[0])} />
+          <input type="file" accept="image/*" multiple onChange={async e => {
+            const files = Array.from(e.target.files);
+            setImageFile(files[0] || null);
+            if (files.length > 0) {
+              const imgs = files.map(file => ({ url: URL.createObjectURL(file), name: file.name }));
+              setPreviewImages(imgs);
+              setImages(imgs); // Actualiza el carrusel con las imágenes locales
+            } else {
+              setPreviewImages([]);
+              setImages([]);
+            }
+          }} />
           <button disabled={!imageFile || loading} onClick={() => handleUpload('image')} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: 4, padding: '8px 16px', fontWeight: 600, marginLeft: 8 }}>
             Subir Imagen
           </button>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, margin: '16px 0' }}>
-            {images.map(img => (
+            {previewImages.map(img => (
               <div key={img.name} style={{ position: 'relative' }}>
-                <img src={img.url} alt={img.name} style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: 8 }} />
+                <img src={img.url.startsWith('http') ? img.url : `${window.location.origin}${img.url}`} alt={img.name} style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: 8 }} />
                 <button style={{ position: 'absolute', top: 0, right: 0, background: '#ef4444', color: 'white', border: 'none', borderRadius: '0 8px 0 8px', padding: '2px 8px', fontWeight: 600, cursor: 'pointer' }} onClick={() => handleDelete('image', img.name)}>X</button>
               </div>
             ))}
@@ -97,14 +127,22 @@ export default function AdminCarouselManager() {
         </div>
         <div style={{ flex: 1 }}>
           <h2>Administrar Carrusel de Videos</h2>
-          <input type="file" accept="video/*" onChange={e => setVideoFile(e.target.files[0])} />
+          <input type="file" accept="video/*" onChange={e => {
+            const file = e.target.files[0];
+            setVideoFile(file);
+            if (file) {
+              setPreviewVideos([{ url: URL.createObjectURL(file), name: file.name, type: file.type }]);
+            } else {
+              setPreviewVideos([]);
+            }
+          }} />
           <button disabled={!videoFile || loading} onClick={() => handleUpload('video')} style={{ background: '#2563eb', color: 'white', border: 'none', borderRadius: 4, padding: '8px 16px', fontWeight: 600, marginLeft: 8 }}>
             Subir Video
           </button>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, margin: '16px 0' }}>
             {videos.map(vid => (
               <div key={vid.name} style={{ position: 'relative' }}>
-                <video src={vid.url} controls style={{ width: 120, height: 80, borderRadius: 8 }} />
+                <video src={vid.url && vid.url.startsWith('http') ? vid.url : `${window.location.origin}${vid.url}`} controls style={{ width: 120, height: 80, objectFit: 'cover', borderRadius: 8, maxWidth: 120, maxHeight: 80, minWidth: 120, minHeight: 80, display: 'block' }} />
                 <button style={{ position: 'absolute', top: 0, right: 0, background: '#ef4444', color: 'white', border: 'none', borderRadius: '0 8px 0 8px', padding: '2px 8px', fontWeight: 600, cursor: 'pointer' }} onClick={() => handleDelete('video', vid.name)}>X</button>
               </div>
             ))}
@@ -114,11 +152,11 @@ export default function AdminCarouselManager() {
       <div style={{ display: 'flex', gap: 32, marginTop: 40 }}>
         <div style={{ flex: 1 }}>
           <h3 style={{ marginBottom: 8 }}>Preview Carrusel de Imágenes</h3>
-          <ImageCarousel images={previewImages} />
+          <ImageCarousel images={images} />
         </div>
         <div style={{ flex: 1 }}>
           <h3 style={{ marginBottom: 8 }}>Preview Carrusel de Videos</h3>
-          <VideoCarousel videos={previewVideos} />
+          <VideoCarousel videos={videos} />
         </div>
       </div>
     </div>
